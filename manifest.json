@@ -1,6 +1,6 @@
 {
-    "name": "Personal Fight Assistant",
-    "short_name": "FightTimer",
+    "name": "Dual Timer",
+    "short_name": "Dual Timer",
     "start_url": "index.html",
     "display": "standalone",
     "background_color": "#041b2d",
@@ -8,7 +8,7 @@
     "orientation": "portrait",
     "icons": [
         {
-            "src": "https://cdn-icons-png.flaticon.com/512/3039/3039434.png",
+            "src": "logo.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
