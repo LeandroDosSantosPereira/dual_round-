@@ -368,21 +368,12 @@
   </div>
 
   <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const bell = new Audio('bell.mp3');
 
-    function playGong() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1.5);
-      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 1.5);
+    function playBell() {
+      bell.pause();
+      bell.currentTime = 0;
+      bell.play().catch(e => console.warn("Erro ao tocar áudio (interação necessária):", e));
     }
 
     const timers = {
@@ -395,6 +386,7 @@
 
     function setProgress(id, percent) {
       const circle = document.querySelector(`#timer-${id} .progress-ring__circle`);
+      if (!circle) return;
       circle.style.strokeDasharray = `${circumference} ${circumference}`;
       const offset = circumference - (percent / 100) * circumference;
       circle.style.strokeDashoffset = offset;
@@ -415,19 +407,21 @@
       const totalRounds = document.getElementById(`total-rounds-${id}`);
       const section = document.getElementById(`timer-${id}`);
 
-      display.innerText = formatTime(t.timeLeft);
-      round.innerText = t.currentRound;
-      totalRounds.innerText = t.totalRounds;
-      status.innerText = t.mode;
+      if (display) display.innerText = formatTime(t.timeLeft);
+      if (round) round.innerText = t.currentRound;
+      if (totalRounds) totalRounds.innerText = t.totalRounds;
+      if (status) status.innerText = t.mode;
 
       const total = t.mode === 'WORK' ? t.workTime : t.restTime;
       const percent = (t.timeLeft / total) * 100;
       setProgress(id, percent);
 
-      if (t.mode === 'REST') {
-        section.classList.add('active-rest');
-      } else {
-        section.classList.remove('active-rest');
+      if (section) {
+        if (t.mode === 'REST') {
+          section.classList.add('active-rest');
+        } else {
+          section.classList.remove('active-rest');
+        }
       }
     }
 
@@ -440,14 +434,14 @@
         t.running = false;
         icon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
       } else {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+        playBell(); // Toca ao iniciar
         t.running = true;
         icon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
 
         t.interval = setInterval(() => {
           t.timeLeft--;
           if (t.timeLeft < 0) {
-            playGong();
+            playBell(); // Toca ao terminar o tempo
             if (t.mode === 'WORK') {
               if (t.currentRound < t.totalRounds) {
                 t.mode = 'REST';
@@ -474,7 +468,8 @@
       t.currentRound = 1;
       t.mode = 'WORK';
       t.timeLeft = t.workTime;
-      document.getElementById(`icon-start-${id}`).innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      const icon = document.getElementById(`icon-start-${id}`);
+      if (icon) icon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
       updateDisplay(id);
     }
 
