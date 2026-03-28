@@ -418,8 +418,13 @@
             playBell(); // Toca ao terminar o tempo
             if (t.mode === 'WORK') {
               if (t.currentRound < t.totalRounds) {
-                t.mode = 'REST';
-                t.timeLeft = t.restTime;
+                if (t.restTime > 0) {
+                  t.mode = 'REST';
+                  t.timeLeft = t.restTime;
+                } else {
+                  t.currentRound++;
+                  t.timeLeft = t.workTime;
+                }
               } else {
                 resetTimer(id);
                 return;
