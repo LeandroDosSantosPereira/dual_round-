@@ -206,8 +206,6 @@
   <div id="timer-A" class="timer-section">
     <div class="absolute top-4 left-4 right-4 flex items-center">
       <div class="text-[16px] font-black tracking-widest text-accent opacity-90 uppercase">Aula</div>
-      <div class="round-counter text-lg font-bold">Round <span id="round-A">1</span>/<span id="total-rounds-A">3</span>
-      </div>
       <button onclick="toggleSettings('A')" class="ml-auto opacity-80 hover:opacity-100 p-2">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
@@ -234,16 +232,11 @@
     <button onclick="resetTimer('A')" class="btn-reset">Resetar</button>
 
     <!-- Config A Overlay -->
-    <div id="settings-A" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col justify-center">
+    <div id="settings-A" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col">
       <h2 class="text-xl font-black mb-6 text-red-500 border-b border-red-900/30 pb-2">CRONÔMETRO DE AULA</h2>
       <div class="space-y-5">
-        <br>
         <div>
-          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">ROUNDS</label>
-          <input type="number" id="input-rounds-A" value="3" class="text-center font-black">
-        </div>
-        <div>
-          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">Tempo de Round</label>
+          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">Duração da Aula</label>
           <div class="flex gap-2">
             <div class="flex-1 text-center">
               <input type="number" id="h-work-A" value="0" class="text-center font-black">
@@ -259,26 +252,9 @@
             </div>
           </div>
         </div>
-        <div>
-          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">Tempo de Descanso</label>
-          <div class="flex gap-2">
-            <div class="flex-1 text-center">
-              <input type="number" id="h-rest-A" value="0" class="text-center font-black">
-              <span class="unit-label">HORAS</span>
-            </div>
-            <div class="flex-1 text-center">
-              <input type="number" id="m-rest-A" value="1" class="text-center font-black">
-              <span class="unit-label">MIN</span>
-            </div>
-            <div class="flex-1 text-center">
-              <input type="number" id="s-rest-A" value="0" class="text-center font-black">
-              <span class="unit-label">SEG</span>
-            </div>
-          </div>
-        </div>
       </div>
       <button onclick="saveSettings('A')"
-        class="mt-8 py-4 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 shadow-lg active:scale-95 transition-transform">Aplicar</button>
+        class="mt-6 py-4 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 shadow-lg active:scale-95 transition-transform">Aplicar</button>
       <button onclick="toggleSettings('A')"
         class="mt-4 text-[10px] opacity-50 font-bold uppercase tracking-widest">Cancelar</button>
     </div>
@@ -316,11 +292,10 @@
     <button onclick="resetTimer('B')" class="btn-reset">Resetar</button>
 
     <!-- Config B Overlay -->
-    <div id="settings-B" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col justify-center">
-      <h2 class="text-xl font-black mb-6 text-cyan-400 border-b border-cyan-900/30 pb-2">ROUNDS DE COMBATE/FUNCIONAL
+    <div id="settings-B" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col">
+      <h2 class="text-lg font-black mb-4 text-cyan-400 border-b border-cyan-900/30 pb-2">ROUNDS DE COMBATE/FUNCIONAL
       </h2>
-      <div class="space-y-5">
-        <br>
+      <div class="space-y-4">
         <div>
           <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">ROUNDS</label>
           <input type="number" id="input-rounds-B" value="3" class="text-center font-black">
@@ -361,7 +336,7 @@
         </div>
       </div>
       <button onclick="saveSettings('B')"
-        class="mt-8 py-4 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-cyan-600 shadow-lg active:scale-95 transition-transform">Aplicar</button>
+        class="mt-6 py-4 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-cyan-600 shadow-lg active:scale-95 transition-transform">Aplicar</button>
       <button onclick="toggleSettings('B')"
         class="mt-4 text-xs opacity-50 font-bold uppercase tracking-widest">Cancelar</button>
     </div>
@@ -377,7 +352,7 @@
     }
 
     const timers = {
-      A: { running: false, currentRound: 1, totalRounds: 3, workTime: 180, restTime: 60, timeLeft: 180, mode: 'WORK', interval: null },
+      A: { running: false, currentRound: 1, totalRounds: 1, workTime: 180, restTime: 0, timeLeft: 180, mode: 'WORK', interval: null },
       B: { running: false, currentRound: 1, totalRounds: 3, workTime: 180, restTime: 60, timeLeft: 180, mode: 'WORK', interval: null }
     };
 
@@ -479,17 +454,23 @@
 
     function saveSettings(id) {
       const t = timers[id];
-      t.totalRounds = parseInt(document.getElementById(`input-rounds-${id}`).value) || 1;
+
+      const roundsEl = document.getElementById(`input-rounds-${id}`);
+      t.totalRounds = roundsEl ? (parseInt(roundsEl.value) || 1) : 1;
 
       const hW = parseInt(document.getElementById(`h-work-${id}`).value) || 0;
       const mW = parseInt(document.getElementById(`m-work-${id}`).value) || 0;
       const sW = parseInt(document.getElementById(`s-work-${id}`).value) || 0;
       t.workTime = (hW * 3600) + (mW * 60) + sW;
 
-      const hR = parseInt(document.getElementById(`h-rest-${id}`).value) || 0;
-      const mR = parseInt(document.getElementById(`m-rest-${id}`).value) || 0;
-      const sR = parseInt(document.getElementById(`s-rest-${id}`).value) || 0;
-      t.restTime = (hR * 3600) + (mR * 60) + sR;
+      const hREl = document.getElementById(`h-rest-${id}`);
+      if (hREl) {
+        const mR = parseInt(document.getElementById(`m-rest-${id}`).value) || 0;
+        const sR = parseInt(document.getElementById(`s-rest-${id}`).value) || 0;
+        t.restTime = (parseInt(hREl.value) || 0) * 3600 + (mR * 60) + sR;
+      } else {
+        t.restTime = 0;
+      }
 
       if (t.workTime < 1) t.workTime = 1;
       resetTimer(id);
