@@ -3,7 +3,7 @@
     "short_name": "Dual Timer",
     "start_url": "index.html",
     "display": "standalone",
-    "background_color": "#041b2d",
+    "background_color": "#4a0a0a",
     "theme_color": "#4a0a0a",
     "orientation": "portrait",
     "icons": [
