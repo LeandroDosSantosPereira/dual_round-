@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dual Boxe Timer Neon</title>
+  <title>Personal Fight Assistant - Timer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
@@ -235,7 +235,7 @@
 
     <!-- Config A Overlay -->
     <div id="settings-A" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col justify-center">
-      <h2 class="text-xl font-black mb-6 text-red-500 border-b border-red-900/30 pb-2">CONFIGURAÇÃO #1</h2>
+      <h2 class="text-xl font-black mb-6 text-red-500 border-b border-red-900/30 pb-2">CRONÔMETRO DE AULA</h2>
       <div class="space-y-5">
         <br>
         <div>
@@ -287,7 +287,7 @@
   <!-- Timer Inferior (Atleta B - Azul) -->
   <div id="timer-B" class="timer-section">
     <div class="absolute top-4 left-4 right-4 flex items-center">
-      <div class="text-[16px] font-black tracking-widest text-accent opacity-90 uppercase">Rounds</div>
+      <div class="text-[16px] font-black tracking-widest text-accent opacity-90 uppercase">Treino</div>
       <div class="round-counter text-lg font-bold">Round <span id="round-B">1</span>/<span id="total-rounds-B">3</span>
       </div>
       <button onclick="toggleSettings('B')" class="ml-auto opacity-80 hover:opacity-100 p-2">
@@ -317,7 +317,8 @@
 
     <!-- Config B Overlay -->
     <div id="settings-B" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col justify-center">
-      <h2 class="text-xl font-black mb-6 text-cyan-400 border-b border-cyan-900/30 pb-2">CONFIGURAÇÃO #2</h2>
+      <h2 class="text-xl font-black mb-6 text-cyan-400 border-b border-cyan-900/30 pb-2">ROUNDS DE COMBATE/FUNCIONAL
+      </h2>
       <div class="space-y-5">
         <br>
         <div>
