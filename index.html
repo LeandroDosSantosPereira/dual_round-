@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dual Boxe Timer Neon</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #041b2d;
+      color: #ffffff;
+      overflow: hidden;
+      height: 100vh;
+      margin: 0;
+      user-select: none;
+    }
+
+    /* Seção Superior - Vermelha */
+    #timer-A {
+      height: 50vh;
+      position: relative;
+      background: linear-gradient(180deg, #4a0a0a 0%, #1a0404 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 2px solid rgba(255, 0, 0, 0.2);
+    }
+
+    /* Seção Inferior - Azul */
+    #timer-B {
+      height: 50vh;
+      position: relative;
+      background: linear-gradient(180deg, #0a3a4a 0%, #041b2d 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Círculo Principal */
+    .timer-circle {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: #020202;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    /* Anel de Progresso SVG */
+    .progress-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.35s;
+      transform-origin: 50% 50%;
+      stroke-linecap: round;
+    }
+
+    /* Cores Atleta A (Vermelho) */
+    #timer-A .progress-ring__circle {
+      stroke: #ff3333;
+    }
+
+    #timer-A .status-badge {
+      border-color: rgba(255, 51, 51, 0.4);
+      color: #ff3333;
+    }
+
+    #timer-A .control-btn-mini {
+      border-color: rgba(255, 51, 51, 0.3);
+    }
+
+    #timer-A .text-accent {
+      color: #ff3333;
+    }
+
+    /* Cores Atleta B (Azul) */
+    #timer-B .progress-ring__circle {
+      stroke: #00f2ff;
+    }
+
+    #timer-B .status-badge {
+      border-color: rgba(0, 242, 255, 0.4);
+      color: #00f2ff;
+    }
+
+    #timer-B .control-btn-mini {
+      border-color: rgba(0, 242, 255, 0.3);
+    }
+
+    #timer-B .text-accent {
+      color: #00f2ff;
+    }
+
+    .status-badge {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      background: #020202;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 900;
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      z-index: 20;
+    }
+
+    .control-btn-mini {
+      position: absolute;
+      bottom: -5px;
+      right: -5px;
+      width: 48px;
+      height: 48px;
+      background: #020202;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      z-index: 20;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .setup-overlay {
+      background: rgba(0, 0, 0, 0.98);
+      backdrop-filter: blur(25px);
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    input[type=number] {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      outline: none;
+      border-radius: 8px;
+      width: 100%;
+      font-size: 1.1rem;
+      padding: 8px;
+    }
+
+    .unit-label {
+      font-size: 9px;
+      font-weight: 800;
+      opacity: 0.6;
+      text-align: center;
+      margin-top: 4px;
+      display: block;
+      letter-spacing: 0.5px;
+    }
+
+    .active-rest .progress-ring__circle {
+      stroke: #ffffff !important;
+      opacity: 0.8;
+    }
+
+    .active-rest .status-badge {
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .btn-reset {
+      margin-top: 1rem;
+      font-size: 1rem;
+      font-weight: 900;
+      opacity: 0.5;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      padding: 10px 20px;
+    }
+
+    .btn-reset:active {
+      opacity: 1;
+      transform: scale(0.95);
+    }
+
+    /* Centralização real dos Rounds */
+    .round-counter {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Timer Superior (Atleta A - Vermelho) -->
+  <div id="timer-A" class="timer-section">
+    <div class="absolute top-4 left-4 right-4 flex items-center">
+      <div class="text-[16px] font-black tracking-widest text-accent opacity-90 uppercase">Aula</div>
+      <div class="round-counter text-lg font-bold">Round <span id="round-A">1</span>/<span id="total-rounds-A">3</span>
+      </div>
+      <button onclick="toggleSettings('A')" class="ml-auto opacity-80 hover:opacity-100 p-2">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="timer-circle">
+      <svg class="progress-ring" width="170" height="170">
+        <circle class="progress-ring__circle" stroke-width="8" fill="transparent" r="78" cx="85" cy="85" />
+      </svg>
+      <div id="display-A" class="text-3xl font-black tracking-tighter">00:03:00</div>
+      <div class="control-btn-mini" onclick="toggleTimer('A')">
+        <svg id="icon-start-A" width="24" height="24" fill="white" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      </div>
+    </div>
+
+    <button onclick="resetTimer('A')" class="btn-reset">Resetar</button>
+
+    <!-- Config A Overlay -->
+    <div id="settings-A" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col justify-center">
+      <h2 class="text-xl font-black mb-6 text-red-500 border-b border-red-900/30 pb-2">CONFIGURAÇÃO #1</h2>
+      <div class="space-y-5">
+        <br>
+        <div>
+          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">ROUNDS</label>
+          <input type="number" id="input-rounds-A" value="3" class="text-center font-black">
+        </div>
+        <div>
+          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">Tempo de Round</label>
+          <div class="flex gap-2">
+            <div class="flex-1 text-center">
+              <input type="number" id="h-work-A" value="0" class="text-center font-black">
+              <span class="unit-label">HORAS</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="m-work-A" value="3" class="text-center font-black">
+              <span class="unit-label">MIN</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="s-work-A" value="0" class="text-center font-black">
+              <span class="unit-label">SEG</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">Tempo de Descanso</label>
+          <div class="flex gap-2">
+            <div class="flex-1 text-center">
+              <input type="number" id="h-rest-A" value="0" class="text-center font-black">
+              <span class="unit-label">HORAS</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="m-rest-A" value="1" class="text-center font-black">
+              <span class="unit-label">MIN</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="s-rest-A" value="0" class="text-center font-black">
+              <span class="unit-label">SEG</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button onclick="saveSettings('A')"
+        class="mt-8 py-4 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-red-600 shadow-lg active:scale-95 transition-transform">Aplicar</button>
+      <button onclick="toggleSettings('A')"
+        class="mt-4 text-[10px] opacity-50 font-bold uppercase tracking-widest">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Timer Inferior (Atleta B - Azul) -->
+  <div id="timer-B" class="timer-section">
+    <div class="absolute top-4 left-4 right-4 flex items-center">
+      <div class="text-[16px] font-black tracking-widest text-accent opacity-90 uppercase">Rounds</div>
+      <div class="round-counter text-lg font-bold">Round <span id="round-B">1</span>/<span id="total-rounds-B">3</span>
+      </div>
+      <button onclick="toggleSettings('B')" class="ml-auto opacity-80 hover:opacity-100 p-2">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+          </path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="timer-circle">
+      <svg class="progress-ring" width="170" height="170">
+        <circle class="progress-ring__circle" stroke-width="8" fill="transparent" r="78" cx="85" cy="85" />
+      </svg>
+      <div id="display-B" class="text-3xl font-black tracking-tighter">00:03:00</div>
+      <div class="control-btn-mini" onclick="toggleTimer('B')">
+        <svg id="icon-start-B" width="24" height="24" fill="white" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      </div>
+    </div>
+
+    <button onclick="resetTimer('B')" class="btn-reset">Resetar</button>
+
+    <!-- Config B Overlay -->
+    <div id="settings-B" class="setup-overlay absolute inset-0 hidden p-6 flex flex-col justify-center">
+      <h2 class="text-xl font-black mb-6 text-cyan-400 border-b border-cyan-900/30 pb-2">CONFIGURAÇÃO #2</h2>
+      <div class="space-y-5">
+        <br>
+        <div>
+          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">ROUNDS</label>
+          <input type="number" id="input-rounds-B" value="3" class="text-center font-black">
+        </div>
+        <div>
+          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">Tempo de Round</label>
+          <div class="flex gap-2">
+            <div class="flex-1 text-center">
+              <input type="number" id="h-work-B" value="0" class="text-center font-black">
+              <span class="unit-label">HORAS</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="m-work-B" value="3" class="text-center font-black">
+              <span class="unit-label">MIN</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="s-work-B" value="0" class="text-center font-black">
+              <span class="unit-label">SEG</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm font-black opacity-80 mb-2 block uppercase tracking-wider">Tempo de Descanso</label>
+          <div class="flex gap-2">
+            <div class="flex-1 text-center">
+              <input type="number" id="h-rest-B" value="0" class="text-center font-black">
+              <span class="unit-label">HORAS</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="m-rest-B" value="1" class="text-center font-black">
+              <span class="unit-label">MIN</span>
+            </div>
+            <div class="flex-1 text-center">
+              <input type="number" id="s-rest-B" value="0" class="text-center font-black">
+              <span class="unit-label">SEG</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button onclick="saveSettings('B')"
+        class="mt-8 py-4 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-cyan-600 shadow-lg active:scale-95 transition-transform">Aplicar</button>
+      <button onclick="toggleSettings('B')"
+        class="mt-4 text-xs opacity-50 font-bold uppercase tracking-widest">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playGong() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1.5);
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.5);
+    }
+
+    const timers = {
+      A: { running: false, currentRound: 1, totalRounds: 3, workTime: 180, restTime: 60, timeLeft: 180, mode: 'WORK', interval: null },
+      B: { running: false, currentRound: 1, totalRounds: 3, workTime: 180, restTime: 60, timeLeft: 180, mode: 'WORK', interval: null }
+    };
+
+    const radius = 78;
+    const circumference = 2 * Math.PI * radius;
+
+    function setProgress(id, percent) {
+      const circle = document.querySelector(`#timer-${id} .progress-ring__circle`);
+      circle.style.strokeDasharray = `${circumference} ${circumference}`;
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDashoffset = offset;
+    }
+
+    function formatTime(totalSeconds) {
+      const hrs = Math.floor(totalSeconds / 3600);
+      const mins = Math.floor((totalSeconds % 3600) / 60);
+      const secs = totalSeconds % 60;
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateDisplay(id) {
+      const t = timers[id];
+      const display = document.getElementById(`display-${id}`);
+      const status = document.getElementById(`status-${id}`);
+      const round = document.getElementById(`round-${id}`);
+      const totalRounds = document.getElementById(`total-rounds-${id}`);
+      const section = document.getElementById(`timer-${id}`);
+
+      display.innerText = formatTime(t.timeLeft);
+      round.innerText = t.currentRound;
+      totalRounds.innerText = t.totalRounds;
+      status.innerText = t.mode;
+
+      const total = t.mode === 'WORK' ? t.workTime : t.restTime;
+      const percent = (t.timeLeft / total) * 100;
+      setProgress(id, percent);
+
+      if (t.mode === 'REST') {
+        section.classList.add('active-rest');
+      } else {
+        section.classList.remove('active-rest');
+      }
+    }
+
+    function toggleTimer(id) {
+      const t = timers[id];
+      const icon = document.getElementById(`icon-start-${id}`);
+
+      if (t.running) {
+        clearInterval(t.interval);
+        t.running = false;
+        icon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      } else {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        t.running = true;
+        icon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+
+        t.interval = setInterval(() => {
+          t.timeLeft--;
+          if (t.timeLeft < 0) {
+            playGong();
+            if (t.mode === 'WORK') {
+              if (t.currentRound < t.totalRounds) {
+                t.mode = 'REST';
+                t.timeLeft = t.restTime;
+              } else {
+                resetTimer(id);
+                return;
+              }
+            } else {
+              t.mode = 'WORK';
+              t.currentRound++;
+              t.timeLeft = t.workTime;
+            }
+          }
+          updateDisplay(id);
+        }, 1000);
+      }
+    }
+
+    function resetTimer(id) {
+      const t = timers[id];
+      clearInterval(t.interval);
+      t.running = false;
+      t.currentRound = 1;
+      t.mode = 'WORK';
+      t.timeLeft = t.workTime;
+      document.getElementById(`icon-start-${id}`).innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      updateDisplay(id);
+    }
+
+    function toggleSettings(id) {
+      document.getElementById(`settings-${id}`).classList.toggle('hidden');
+    }
+
+    function saveSettings(id) {
+      const t = timers[id];
+      t.totalRounds = parseInt(document.getElementById(`input-rounds-${id}`).value) || 1;
+
+      const hW = parseInt(document.getElementById(`h-work-${id}`).value) || 0;
+      const mW = parseInt(document.getElementById(`m-work-${id}`).value) || 0;
+      const sW = parseInt(document.getElementById(`s-work-${id}`).value) || 0;
+      t.workTime = (hW * 3600) + (mW * 60) + sW;
+
+      const hR = parseInt(document.getElementById(`h-rest-${id}`).value) || 0;
+      const mR = parseInt(document.getElementById(`m-rest-${id}`).value) || 0;
+      const sR = parseInt(document.getElementById(`s-rest-${id}`).value) || 0;
+      t.restTime = (hR * 3600) + (mR * 60) + sR;
+
+      if (t.workTime < 1) t.workTime = 1;
+      resetTimer(id);
+      toggleSettings(id);
+    }
+
+    updateDisplay('A');
+    updateDisplay('B');
+  </script>
+</body>
+
+</html>
