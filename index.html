@@ -457,7 +457,25 @@
     }
 
     function toggleSettings(id) {
-      document.getElementById(`settings-${id}`).classList.toggle('hidden');
+      const settingsDiv = document.getElementById(`settings-${id}`);
+      if (settingsDiv.classList.contains('hidden')) {
+        // Sincronizar inputs com o estado atual antes de exibir
+        const t = timers[id];
+        document.getElementById(`h-work-${id}`).value = Math.floor(t.workTime / 3600);
+        document.getElementById(`m-work-${id}`).value = Math.floor((t.workTime % 3600) / 60);
+        document.getElementById(`s-work-${id}`).value = t.workTime % 60;
+
+        const roundsEl = document.getElementById(`input-rounds-${id}`);
+        if (roundsEl) roundsEl.value = t.totalRounds;
+
+        const hREl = document.getElementById(`h-rest-${id}`);
+        if (hREl) {
+          hREl.value = Math.floor(t.restTime / 3600);
+          document.getElementById(`m-rest-${id}`).value = Math.floor((t.restTime % 3600) / 60);
+          document.getElementById(`s-rest-${id}`).value = t.restTime % 60;
+        }
+      }
+      settingsDiv.classList.toggle('hidden');
     }
 
     function saveSettings(id) {
@@ -481,10 +499,35 @@
       }
 
       if (t.workTime < 1) t.workTime = 1;
+
+      // Salvar as configurações atuais no LocalStorage
+      const configToSave = {
+        A: { workTime: timers.A.workTime, restTime: timers.A.restTime, totalRounds: timers.A.totalRounds },
+        B: { workTime: timers.B.workTime, restTime: timers.B.restTime, totalRounds: timers.B.totalRounds }
+      };
+      localStorage.setItem('fight_timer_config', JSON.stringify(configToSave));
+
       resetTimer(id);
       toggleSettings(id);
     }
 
+    // Função robusta para carregar dados salvos
+    function loadSavedConfig() {
+      const savedData = localStorage.getItem('fight_timer_config');
+      if (savedData) {
+        try {
+          const config = JSON.parse(savedData);
+          ['A', 'B'].forEach(id => {
+            if (config[id]) {
+              Object.assign(timers[id], config[id]);
+              timers[id].timeLeft = timers[id].workTime;
+            }
+          });
+        } catch (e) { console.error("Erro ao ler LocalStorage:", e); }
+      }
+    }
+
+    loadSavedConfig();
     updateDisplay('A');
     updateDisplay('B');
 
