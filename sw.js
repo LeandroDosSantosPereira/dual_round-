@@ -1,21 +1,28 @@
+/* sw.js */
 const CACHE_NAME = 'fight-assistant-v2';
+
+// Lista definitiva de arquivos para o funcionamento offline
 const ASSETS = [
   './',
   './index.html',
-  // Adicione aqui os caminhos para seu CSS e JS
-  // Exemplo: './style.css', './app.js'
+  './tailwind.min.css',
+  './bell.mp3',
+  './manifest.json'
 ];
 
-// Instalação: Salva os arquivos no cache
+// Instalação: Salva os arquivos no cache físico do navegador
 self.addEventListener('install', (event) => {
+  // Força o Service Worker a se tornar o ativo imediatamente
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      console.log('SW: Cacheando ativos essenciais');
       return cache.addAll(ASSETS);
     })
   );
 });
 
-// Ativação: Limpa caches antigos
+// Ativação: Limpa versões antigas do cache para evitar conflitos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -24,15 +31,19 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // Garante que o SW controle a página imediatamente sem precisar de reload
+  self.clients.claim();
 });
 
-// Estratégia: Cache First, falling back to Network
+// Estratégia: Cache First (Busca no cache, se não tiver, vai na rede)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Se ambos falharem (offline e não cacheado), você pode retornar uma página de erro
-      });
+      // Retorna o arquivo do cache ou tenta buscar na rede
+      return cachedResponse || fetch(event.request);
+    }).catch(() => {
+      // Fallback silencioso caso falhe (ex: mídia não cacheada)
+      console.error('SW: Recurso não encontrado offline:', event.request.url);
     })
   );
 });
