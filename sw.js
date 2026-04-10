@@ -7,7 +7,9 @@ const ASSETS = [
   './index.html',
   './tailwind.min.css',
   './bell.mp3',
-  './manifest.json'
+  './manifest.json',
+  './Montserrat/Montserrat-VariableFont_wght.ttf',
+  './Montserrat/Montserrat-Italic-VariableFont_wght.ttf'
 ];
 
 // Instalação: Salva os arquivos no cache físico do navegador
