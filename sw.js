@@ -1,7 +1,4 @@
-/* sw.js */
 const CACHE_NAME = 'fight-assistant-v2';
-
-// Lista definitiva de arquivos para o funcionamento offline
 const ASSETS = [
   './',
   './index.html',
@@ -12,19 +9,16 @@ const ASSETS = [
   './Montserrat/Montserrat-Italic-VariableFont_wght.ttf'
 ];
 
-// Instalação: Salva os arquivos no cache físico do navegador
+// Instalação: Salva os arquivos no cache
 self.addEventListener('install', (event) => {
-  // Força o Service Worker a se tornar o ativo imediatamente
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('SW: Cacheando ativos essenciais');
       return cache.addAll(ASSETS);
     })
   );
 });
 
-// Ativação: Limpa versões antigas do cache para evitar conflitos
+// Ativação: Limpa caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -33,19 +27,15 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  // Garante que o SW controle a página imediatamente sem precisar de reload
-  self.clients.claim();
 });
 
-// Estratégia: Cache First (Busca no cache, se não tiver, vai na rede)
+// Estratégia: Cache First, falling back to Network
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Retorna o arquivo do cache ou tenta buscar na rede
-      return cachedResponse || fetch(event.request);
-    }).catch(() => {
-      // Fallback silencioso caso falhe (ex: mídia não cacheada)
-      console.error('SW: Recurso não encontrado offline:', event.request.url);
+      return cachedResponse || fetch(event.request).catch(() => {
+        // Se ambos falharem (offline e não cacheado), você pode retornar uma página de erro
+      });
     })
   );
 });
